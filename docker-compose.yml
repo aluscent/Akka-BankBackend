@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  db:
+    image: cassandra:4.1.1
+    ports:
+      - 9042:9042
+    environment:
+      - CASSANDRA_CLUSTER_NAME=akka-cassandra-cluster
