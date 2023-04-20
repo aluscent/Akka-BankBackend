@@ -14,7 +14,7 @@ import java.util.UUID
 class PersistentBank {
   def commandHandler(context: ActorContext[Command]): (Bank, Command) => Effect[Event, Bank] = (bank, command) =>
     command match {
-      case message @ CreateBankAccount(user, currency, initialBalance, _) =>
+      case message@CreateBankAccount(user, currency, initialBalance, _) =>
         val id = UUID.randomUUID().toString
         println(s"[BANK] Create account: $id")
         val newBankAccount = context.spawn(PersistentBankAccount(id), id)
@@ -22,14 +22,14 @@ class PersistentBank {
           .persist(BankAccountCreated(BankAccount(id = id, user = user, currency = currency, balance = initialBalance)))
           .thenReply(newBankAccount)(_ => message)
 
-      case message @ GetBankAccount(id, replyTo) =>
+      case message@GetBankAccount(id, replyTo) =>
         println(s"[BANK] Get account balance: $id")
         bank.accounts.get(id) match {
           case Some(value) => Effect.reply(value)(message)
           case None => Effect.reply(replyTo)(GetBankAccountResponse(None))
         }
 
-      case message @ UpdateBalance(id, _, _, replyTo) =>
+      case message@UpdateBalance(id, _, _, replyTo) =>
         println(s"[BANK] Update account balance: $id")
         bank.accounts.get(id) match {
           case Some(value) => Effect.reply(value)(message)
@@ -49,11 +49,11 @@ class PersistentBank {
 
   def apply(): Behavior[Command] = Behaviors.setup { context =>
     EventSourcedBehavior[Command, Event, Bank](
-  persistenceId = PersistenceId.ofUniqueId("bank"),
-  emptyState = Bank(Map.empty[String, ActorRef[Command]]),
-  commandHandler = commandHandler(context),
-  eventHandler = eventHandler(context)
-  )
+      persistenceId = PersistenceId.ofUniqueId("bank"),
+      emptyState = Bank(Map.empty[String, ActorRef[Command]]),
+      commandHandler = commandHandler(context),
+      eventHandler = eventHandler(context)
+    )
   }
 }
 
